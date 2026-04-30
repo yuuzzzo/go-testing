@@ -16,11 +16,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func main(){
+func main() {
 
 	// Carrega as variáveis do arquivo .env para o sistema
 	err := godotenv.Load()
-	if err != nil{
+	if err != nil {
 		log.Println("Aviso: Não encontrei o arquivo .env, usando variáveis de ambiente do sistema")
 	}
 
@@ -42,7 +42,7 @@ func main(){
 		log.Fatal("Falha ao conectar no Banco de Dados: ", err)
 	}
 
-	defer func(){
+	defer func() {
 		if err = client.Disconnect(ctx); err != nil {
 			log.Fatal(err)
 		}
@@ -59,7 +59,9 @@ func main(){
 	http.HandleFunc("GET /buscar", hdl.Search)
 	http.HandleFunc("GET /buscarId/{id}", hdl.SearchById)
 	http.HandleFunc("DELETE /deletar/{id}", hdl.Delete)
+	http.HandleFunc("UPDATE /atualizar/{id}", hdl.UpdateById)
 
 	fmt.Println("Servidor rodando na porta 8000")
 	http.ListenAndServe(":8000", nil)
 }
+

@@ -18,12 +18,11 @@ func AnimesHandler(animeService *service.AnimeService) *AnimeHandler {
 	}
 }
 
-func (anime *AnimeHandler) Create(w http.ResponseWriter, r*http.Request){
+func (anime *AnimeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var animes models.Animes
 	json.NewDecoder(r.Body).Decode(&animes)
 
 	createdAnime, err := anime.service.CreateAnimes(animes)
-
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -35,8 +34,8 @@ func (anime *AnimeHandler) Create(w http.ResponseWriter, r*http.Request){
 	json.NewEncoder(w).Encode(createdAnime)
 }
 
-func (anime *AnimeHandler) Search(w http.ResponseWriter, r*http.Request){
-	
+func (anime *AnimeHandler) Search(w http.ResponseWriter, r *http.Request) {
+
 	searchAnimes, err := anime.service.SearchAnimes()
 
 	if err != nil {
@@ -49,7 +48,7 @@ func (anime *AnimeHandler) Search(w http.ResponseWriter, r*http.Request){
 	json.NewEncoder(w).Encode(searchAnimes)
 }
 
-func (anime *AnimeHandler) Delete(w http.ResponseWriter, r*http.Request){
+func (anime *AnimeHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	// r.PathValue("id"): No Go 1.22+, isso pega o valor da url definida no main
 	id := r.PathValue("id")
@@ -62,7 +61,7 @@ func (anime *AnimeHandler) Delete(w http.ResponseWriter, r*http.Request){
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (animeh *AnimeHandler) SearchById(w http.ResponseWriter, r*http.Request){
+func (animeh *AnimeHandler) SearchById(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
 	anime, err := animeh.service.SearchAnimeForId(id)
@@ -76,3 +75,26 @@ func (animeh *AnimeHandler) SearchById(w http.ResponseWriter, r*http.Request){
 	json.NewEncoder(w).Encode(anime)
 }
 
+func (animeh *AnimeHandler) UpdateById(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+
+	var anime models.Animes
+	if err := json.NewDecoder(r.Body).Decode(&anime); err != nil {
+		http.Error(w, "JSON inválido ou mal formatado", http.StatusBadRequest)
+		return
+	}
+
+	err := animeh.service.UpdateAnimeForId(anime, id)
+
+	if err != nil {
+		http.Error(w, "Não foi possivel processar seu anime editado!", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Anime atualizado com sucesso!",
+	})
+}

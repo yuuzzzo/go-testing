@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/YuriLuiz1/ninja-platform-go/internal/models"
@@ -20,7 +21,7 @@ func AnimesRepository(collection *mongo.Collection) *MongoAnimesRepository {
 	}
 }
 
-func(r *MongoAnimesRepository) Save(anime models.Animes) (models.Animes, error) {
+func (r *MongoAnimesRepository) Save(anime models.Animes) (models.Animes, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -32,7 +33,7 @@ func(r *MongoAnimesRepository) Save(anime models.Animes) (models.Animes, error) 
 	return anime, nil
 }
 
-func(r *MongoAnimesRepository) Search() ([]models.Animes, error){
+func (r *MongoAnimesRepository) Search() ([]models.Animes, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -53,32 +54,32 @@ func(r *MongoAnimesRepository) Search() ([]models.Animes, error){
 	return animes, nil
 }
 
-func(r *MongoAnimesRepository) Delete(id string) (error){
+func (r *MongoAnimesRepository) Delete(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// ObjectIDFromHex transforma o id string em hexadecimal para que o mongo entenda que isso é um id
-	objID, err := primitive.ObjectIDFromHex(id) 
-	if err != nil{
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
 		return err // ID Inválido
 	}
-	
+
 	//Aqui ele fala Procure esse id (objID que veio da requisição) no campo id do meu anime (_id no Mongo)
-	filter := bson.M{"_id": objID} 
+	filter := bson.M{"_id": objID}
 
 	//Apaga o primeiro documento que encontrar com esse ID
 	_, err = r.collection.DeleteOne(ctx, filter)
 	return err
 }
 
-func(r *MongoAnimesRepository) SearchUnique(id string) (models.Animes, error){
+func (r *MongoAnimesRepository) SearchUnique(id string) (models.Animes, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return models.Animes{}, err
-	}	
+	}
 
 	var anime models.Animes
 
@@ -88,4 +89,26 @@ func(r *MongoAnimesRepository) SearchUnique(id string) (models.Animes, error){
 	}
 
 	return anime, nil
+}
+
+func (r *MongoAnimesRepository) UpdateUnique(anime models.Animes, id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$set": anime}
+
+	result, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
+
+	return nil
 }
