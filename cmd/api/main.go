@@ -50,16 +50,29 @@ func main() {
 
 	db := client.Database("ninja-animes")
 	animesCollection := db.Collection("animes")
+	geninsCollection := db.Collection("genins")
 
+	// Instancia interna dos animes
 	repo := repository.AnimesRepository(animesCollection)
 	svc := service.AnimesService(repo)
 	hdl := handler.AnimesHandler(svc)
 
+	// Rotas dos animes
 	http.HandleFunc("POST /cadastrar", hdl.Create)
 	http.HandleFunc("GET /buscar", hdl.Search)
 	http.HandleFunc("GET /buscarId/{id}", hdl.SearchById)
 	http.HandleFunc("DELETE /deletar/{id}", hdl.Delete)
-	http.HandleFunc("UPDATE /atualizar/{id}", hdl.UpdateById)
+	http.HandleFunc("PATCH /atualizar/{id}", hdl.UpdateById)
+
+	// Instancia interna dos usuários
+	repoGenins := repository.GeninsRepository(geninsCollection)
+	svcGenins := service.GeninsService(repoGenins)
+	hdlGenins := handler.GeninsHandler(svcGenins)
+
+	// Rotas dos usuários
+	http.HandleFunc("GET /buscarGenins", hdlGenins.Search)
+	http.HandleFunc("POST /cadastrarGenin", hdlGenins.Save)
+
 
 	fmt.Println("Servidor rodando na porta 8000")
 	http.ListenAndServe(":8000", nil)
