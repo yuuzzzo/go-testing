@@ -11,6 +11,7 @@ import (
 	"github.com/YuriLuiz1/ninja-platform-go/internal/handler"
 	"github.com/YuriLuiz1/ninja-platform-go/internal/repository"
 	"github.com/YuriLuiz1/ninja-platform-go/internal/service"
+	"github.com/YuriLuiz1/ninja-platform-go/pkg/security"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -48,6 +49,7 @@ func main() {
 		}
 	}()
 
+	mux := http.NewServeMux()
 	db := client.Database("ninja-animes")
 	animesCollection := db.Collection("animes")
 	geninsCollection := db.Collection("genins")
@@ -58,11 +60,11 @@ func main() {
 	hdl := handler.AnimesHandler(svc)
 
 	// Rotas dos animes
-	http.HandleFunc("POST /cadastrar", hdl.Create)
-	http.HandleFunc("GET /buscar", hdl.Search)
-	http.HandleFunc("GET /buscarId/{id}", hdl.SearchById)
-	http.HandleFunc("DELETE /deletar/{id}", hdl.Delete)
-	http.HandleFunc("PATCH /atualizar/{id}", hdl.UpdateById)
+	mux.HandleFunc("POST /cadastrar", hdl.Create)
+	mux.HandleFunc("GET /buscar", hdl.Search)
+	mux.HandleFunc("GET /buscarId/{id}", hdl.SearchById)
+	mux.HandleFunc("DELETE /deletar/{id}", hdl.Delete)
+	mux.HandleFunc("PATCH /atualizar/{id}", hdl.UpdateById)
 
 	// Instancia interna dos usuários
 	repoGenins := repository.GeninsRepository(geninsCollection)
@@ -70,11 +72,10 @@ func main() {
 	hdlGenins := handler.GeninsHandler(svcGenins)
 
 	// Rotas dos usuários
-	http.HandleFunc("GET /buscarGenins", hdlGenins.Search)
-	http.HandleFunc("POST /cadastrarGenin", hdlGenins.Save)
+	mux.HandleFunc("GET /buscarGenins", hdlGenins.Search)
+	mux.HandleFunc("POST /cadastrarGenin", hdlGenins.Save)
 
 
 	fmt.Println("Servidor rodando na porta 8000")
-	http.ListenAndServe(":8000", nil)
+	http.ListenAndServe(":8000", security.EnableCORS(mux))
 }
-
