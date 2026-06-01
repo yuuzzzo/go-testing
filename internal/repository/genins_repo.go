@@ -51,3 +51,20 @@ func (r *MongoGeninsRepository) Save(genin models.Genins) (models.Genins, error)
 
 	return genin, nil
 }
+
+func (r *MongoGeninsRepository) SearchOne(email string) (*models.Genins, error){
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var genin models.Genins
+	err := r.collection.FindOne(ctx, bson.M{"email": email}).Decode(&genin)
+
+	if err != nil{
+		if err == mongo.ErrNoDocuments{
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &genin, nil
+}

@@ -74,6 +74,7 @@ func main() {
 	// Rotas dos usuários
 	mux.HandleFunc("GET /buscarGenins", hdlGenins.Search)
 	mux.HandleFunc("POST /cadastrarGenin", hdlGenins.Save)
+	mux.HandleFunc("POST /buscarGenin", hdlGenins.SearchOne)
 
 
 	fmt.Println("Servidor rodando na porta 8000")

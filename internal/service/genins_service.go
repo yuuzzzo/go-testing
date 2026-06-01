@@ -4,11 +4,13 @@ import (
 	"errors"
 
 	"github.com/YuriLuiz1/ninja-platform-go/internal/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type GeninsRepository interface {
 	Search() ([]models.Genins, error)
 	Save(genin models.Genins) (models.Genins, error)
+	SearchOne(email string) (*models.Genins, error)
 }
 
 type GeninService struct{
@@ -39,4 +41,21 @@ func (s *GeninService) CreateGenins(genin models.Genins) (models.Genins, error) 
 		}
 
 		return s.repo.Save(genin)
+}
+
+func (s *GeninService) SearchOneGenin(email string, password string) (*models.Genins, error){
+
+	geninData, err := s.repo.SearchOne(email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(geninData.Password), []byte(password))
+
+	if err != nil {
+		return nil, errors.New("Password is invalid")
+	}
+
+	return geninData, nil
 }
